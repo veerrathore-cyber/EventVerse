@@ -22,30 +22,32 @@ exports.createEvent = async (req, res) => {
 
 exports.getEvents = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 5; 
-        const skip = (page - 1) * limit;
+    const { page = 1, limit = 6, category } = req.query;
+    let query = {};
 
-        const events = await Event.find()
-            .populate('bookedStudents', 'name email') 
-            .sort({ date: 1 }) 
-            .skip(skip)
-            .limit(limit);
-
-        const totalEvents = await Event.countDocuments();
-
-        res.status(200).json({
-            events,
-            currentPage: page,
-            totalPages: Math.ceil(totalEvents / limit),
-            totalEvents
-        });
-    } catch (error) {
-        res.status(500).json({ 
-            message: "Server Error", 
-            error: error.message 
-        });
+    if (category) {
+      query = {
+        $or: [
+          { title: { $regex: category, $options: 'i' } },
+          { description: { $regex: category, $options: 'i' } }
+        ]
+      };
     }
+
+    const events = await Event.find(query)
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+      
+    const total = await Event.countDocuments(query);
+
+    res.status(200).json({
+      events,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching events", error });
+  }
 };
 
 exports.bookEvent = async (req, res) => {
