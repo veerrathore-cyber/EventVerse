@@ -3,7 +3,7 @@ import axios from 'axios';
 // 1. Axios ka ek central instance banaya 
 // Ab humein har jagah lamba URL (https://eventverse-o7o9.onrender.com) likhne ki zaroorat nahi padegi
 const API = axios.create({
-    baseURL: 'https://eventverse-o7o9.onrender.com',
+    baseURL: 'https://eventverse-o7o9.onrender.com/api',
 });
 
 // 2. Request Interceptor (Hamara Frontend Bouncer)
