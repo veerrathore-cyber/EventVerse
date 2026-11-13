@@ -53,6 +53,23 @@ const Home = () => {
         setPage(1); // Reset to page 1 when filter changes
     };
 
+    // LOGIC: Sirf maximum 5 page numbers dikhane ke liye
+    let startPage = Math.max(1, page - 2);
+    let endPage = Math.min(totalPages, page + 2);
+
+    if (totalPages > 5) {
+        if (page <= 3) {
+            endPage = 5;
+        } else if (page >= totalPages - 2) {
+            startPage = totalPages - 4;
+        }
+    }
+
+    const visiblePages = [];
+    for (let i = startPage; i <= (endPage || 1); i++) {
+        visiblePages.push(i);
+    }
+
     return (
         <div className="container">
             <div className="filters">
@@ -65,7 +82,8 @@ const Home = () => {
             
             <div className="event-grid">
                 {events.map(event => (
-                    <div key={event._id} className="event-card">
+                    // FIX: Flex aur column laga diya taaki buttons neeche push ho jayein
+                    <div key={event._id} className="event-card" style={{ display: 'flex', flexDirection: 'column' }}>
                         <h3>{event.title}</h3>
                         <p>{event.description}</p>
                         <br />
@@ -73,16 +91,19 @@ const Home = () => {
                         <p><strong>Location:</strong> {event.location}</p>
                         <p><strong>Available Seats:</strong> {event.totalSeats - event.bookedStudents.length}</p>
                         
-                        <button className="book-btn" onClick={() => bookEvent(event._id)}>Book Seat</button>
-                        
-                        {role === 'admin' && (
-                            <button 
-                                className="book-btn red-glass" 
-                                onClick={() => deleteEvent(event._id)}
-                            >
-                                Delete Event
-                            </button>
-                        )}
+                        {/* FIX: marginTop 'auto' is div ko hamesha card ke bottom par fix rakhega */}
+                        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            <button className="book-btn" onClick={() => bookEvent(event._id)}>Book Seat</button>
+                            
+                            {role === 'admin' && (
+                                <button 
+                                    className="book-btn red-glass" 
+                                    onClick={() => deleteEvent(event._id)}
+                                >
+                                    Delete Event
+                                </button>
+                            )}
+                        </div>
                     </div>
                 ))}
             </div>
@@ -104,24 +125,21 @@ const Home = () => {
                         Previous
                     </button>
 
-                    {/* Dynamic Page Numbers (1, 2, 3...) */}
-                    {[...Array(totalPages || 1)].map((_, index) => {
-                        const pageNum = index + 1;
-                        return (
-                            <button
-                                key={pageNum}
-                                onClick={() => setPage(pageNum)}
-                                style={{
-                                    padding: '8px 16px', border: 'none', borderRight: '1px solid #ddd',
-                                    backgroundColor: page === pageNum ? '#007bff' : 'white',
-                                    color: page === pageNum ? 'white' : '#007bff',
-                                    cursor: 'pointer', fontSize: '16px'
-                                }}
-                            >
-                                {pageNum}
-                            </button>
-                        );
-                    })}
+                    {/* Dynamic Page Numbers (Fixed Limit of 5) */}
+                    {visiblePages.map(pageNum => (
+                        <button
+                            key={pageNum}
+                            onClick={() => setPage(pageNum)}
+                            style={{
+                                padding: '8px 16px', border: 'none', borderRight: '1px solid #ddd',
+                                backgroundColor: page === pageNum ? '#007bff' : 'white',
+                                color: page === pageNum ? 'white' : '#007bff',
+                                cursor: 'pointer', fontSize: '16px'
+                            }}
+                        >
+                            {pageNum}
+                        </button>
+                    ))}
 
                     {/* Next Button */}
                     <button
