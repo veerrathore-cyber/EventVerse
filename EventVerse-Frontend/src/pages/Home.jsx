@@ -5,24 +5,22 @@ const Home = () => {
     const [events, setEvents] = useState([]);
     const [category, setCategory] = useState('All');
     
-    // NEW: Pagination ke liye state add kiya
+    // Pagination states
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     
     const categories = ['All', 'Web', 'AI', 'Cyber Security', 'Startup', 'Cloud', 'Other'];
     const role = localStorage.getItem('role');
 
-    // NEW: category ya page change hone par events dobara fetch honge
     useEffect(() => {
         fetchEvents();
     }, [category, page]);
 
     const fetchEvents = async () => {
         try {
-            // NEW: API link mein page number add kar diya
+            // API call with page parameter
             const res = await API.get(`/events/all?category=${category}&page=${page}`);
             setEvents(res.data.events);
-            // Backend se aane wale total pages ko state mein set karna
             setTotalPages(res.data.totalPages || 1); 
         } catch (error) {
             console.error(error);
@@ -50,10 +48,9 @@ const Home = () => {
         }
     };
 
-    // Jab user filter change kare, toh page wapas 1 par chala jaye
     const handleCategoryChange = (c) => {
         setCategory(c);
-        setPage(1);
+        setPage(1); // Reset to page 1 when filter changes
     };
 
     return (
@@ -90,29 +87,55 @@ const Home = () => {
                 ))}
             </div>
 
-            {/* NEW: Pagination Buttons UI */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginTop: '30px', paddingBottom: '20px' }}>
-                <button 
-                    className="book-btn" 
-                    disabled={page === 1} 
-                    onClick={() => setPage(page - 1)}
-                    style={{ opacity: page === 1 ? 0.5 : 1, cursor: page === 1 ? 'not-allowed' : 'pointer' }}
-                >
-                    Previous
-                </button>
-                
-                <span style={{ display: 'flex', alignItems: 'center', color: 'white', fontWeight: 'bold' }}>
-                    Page {page} of {totalPages}
-                </span>
-                
-                <button 
-                    className="book-btn" 
-                    disabled={page === totalPages} 
-                    onClick={() => setPage(page + 1)}
-                    style={{ opacity: page === totalPages ? 0.5 : 1, cursor: page === totalPages ? 'not-allowed' : 'pointer' }}
-                >
-                    Next
-                </button>
+            {/* Professional Numbered Pagination UI */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '40px', paddingBottom: '40px' }}>
+                <div style={{ display: 'inline-flex', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden', backgroundColor: 'white' }}>
+                    
+                    {/* Previous Button */}
+                    <button
+                        disabled={page === 1}
+                        onClick={() => setPage(page - 1)}
+                        style={{
+                            padding: '8px 16px', border: 'none', borderRight: '1px solid #ddd',
+                            backgroundColor: 'white', color: page === 1 ? '#999' : '#007bff',
+                            cursor: page === 1 ? 'not-allowed' : 'pointer', fontSize: '16px'
+                        }}
+                    >
+                        Previous
+                    </button>
+
+                    {/* Dynamic Page Numbers (1, 2, 3...) */}
+                    {[...Array(totalPages || 1)].map((_, index) => {
+                        const pageNum = index + 1;
+                        return (
+                            <button
+                                key={pageNum}
+                                onClick={() => setPage(pageNum)}
+                                style={{
+                                    padding: '8px 16px', border: 'none', borderRight: '1px solid #ddd',
+                                    backgroundColor: page === pageNum ? '#007bff' : 'white',
+                                    color: page === pageNum ? 'white' : '#007bff',
+                                    cursor: 'pointer', fontSize: '16px'
+                                }}
+                            >
+                                {pageNum}
+                            </button>
+                        );
+                    })}
+
+                    {/* Next Button */}
+                    <button
+                        disabled={page === totalPages}
+                        onClick={() => setPage(page + 1)}
+                        style={{
+                            padding: '8px 16px', border: 'none',
+                            backgroundColor: 'white', color: page === totalPages ? '#999' : '#007bff',
+                            cursor: page === totalPages ? 'not-allowed' : 'pointer', fontSize: '16px'
+                        }}
+                    >
+                        Next
+                    </button>
+                </div>
             </div>
 
         </div>
