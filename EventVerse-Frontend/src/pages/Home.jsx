@@ -4,18 +4,26 @@ import API from '../api';
 const Home = () => {
     const [events, setEvents] = useState([]);
     const [category, setCategory] = useState('All');
-    const categories = ['All', 'Web', 'AI', 'Cyber Security', 'Startup', 'Cloud', 'Other'];
     
+    // NEW: Pagination ke liye state add kiya
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    
+    const categories = ['All', 'Web', 'AI', 'Cyber Security', 'Startup', 'Cloud', 'Other'];
     const role = localStorage.getItem('role');
 
+    // NEW: category ya page change hone par events dobara fetch honge
     useEffect(() => {
         fetchEvents();
-    }, [category]);
+    }, [category, page]);
 
     const fetchEvents = async () => {
         try {
-            const res = await API.get(`/events/all?category=${category}`);
+            // NEW: API link mein page number add kar diya
+            const res = await API.get(`/events/all?category=${category}&page=${page}`);
             setEvents(res.data.events);
+            // Backend se aane wale total pages ko state mein set karna
+            setTotalPages(res.data.totalPages || 1); 
         } catch (error) {
             console.error(error);
         }
@@ -42,15 +50,22 @@ const Home = () => {
         }
     };
 
+    // Jab user filter change kare, toh page wapas 1 par chala jaye
+    const handleCategoryChange = (c) => {
+        setCategory(c);
+        setPage(1);
+    };
+
     return (
         <div className="container">
             <div className="filters">
                 {categories.map(c => (
-                    <button key={c} className={category === c ? 'active' : ''} onClick={() => setCategory(c)}>
+                    <button key={c} className={category === c ? 'active' : ''} onClick={() => handleCategoryChange(c)}>
                         {c}
                     </button>
                 ))}
             </div>
+            
             <div className="event-grid">
                 {events.map(event => (
                     <div key={event._id} className="event-card">
@@ -74,6 +89,32 @@ const Home = () => {
                     </div>
                 ))}
             </div>
+
+            {/* NEW: Pagination Buttons UI */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginTop: '30px', paddingBottom: '20px' }}>
+                <button 
+                    className="book-btn" 
+                    disabled={page === 1} 
+                    onClick={() => setPage(page - 1)}
+                    style={{ opacity: page === 1 ? 0.5 : 1, cursor: page === 1 ? 'not-allowed' : 'pointer' }}
+                >
+                    Previous
+                </button>
+                
+                <span style={{ display: 'flex', alignItems: 'center', color: 'white', fontWeight: 'bold' }}>
+                    Page {page} of {totalPages}
+                </span>
+                
+                <button 
+                    className="book-btn" 
+                    disabled={page === totalPages} 
+                    onClick={() => setPage(page + 1)}
+                    style={{ opacity: page === totalPages ? 0.5 : 1, cursor: page === totalPages ? 'not-allowed' : 'pointer' }}
+                >
+                    Next
+                </button>
+            </div>
+
         </div>
     );
 };
